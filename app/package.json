@@ -1,0 +1,71 @@
+{
+    "name": "barcode-reader",
+    "private": true,
+    "version": "1.1.6",
+    "main": "electron/main.cjs",
+    "type": "module",
+    "scripts": {
+        "dev": "vite",
+        "build": "npm run build:web",
+        "build:web": "tsc -b && vite build",
+        "build:backend:win": "python -m pip install -r backend/requirements.txt && python -m PyInstaller --noconfirm --clean --onefile --name barcode-backend backend/main.py --distpath backend/dist --workpath backend/build --specpath backend --hidden-import uvicorn --hidden-import fastapi --hidden-import starlette --hidden-import pydantic --hidden-import pydantic_core --hidden-import sqlalchemy --hidden-import aiosqlite --hidden-import sqlalchemy.dialects.sqlite.aiosqlite --collect-all uvicorn --collect-all fastapi --collect-all starlette --collect-all pydantic --collect-all pydantic_core --collect-all sqlalchemy --collect-all aiosqlite --collect-all openpyxl",
+        "build:desktop:win": "npm run build:web && npm run build:backend:win && electron-builder --win nsis --publish never",
+        "desktop:run": "electron .",
+        "preview": "vite preview"
+    },
+    "dependencies": {
+        "react": "^18.3.1",
+        "react-dom": "^18.3.1"
+    },
+    "devDependencies": {
+        "@types/react": "^18.3.12",
+        "@types/react-dom": "^18.3.1",
+        "@vitejs/plugin-react": "^4.3.4",
+        "electron": "^40.6.0",
+        "typescript": "^5.6.3",
+        "vite": "^5.4.10"
+    },
+    "build": {
+        "appId": "com.barcode.reader",
+        "productName": "Barcode Reader",
+        "files": [
+            "dist/**/*",
+            "electron/**/*",
+            "package.json"
+        ],
+        "extraResources": [
+            {
+                "from": "backend/dist/barcode-backend.exe",
+                "to": "backend/barcode-backend.exe"
+            }
+        ],
+        "directories": {
+            "output": "release"
+        },
+        "asar": true,
+        "win": {
+            "icon": "icons/app.ico",
+            "target": [
+                {
+                    "target": "nsis",
+                    "arch": [
+                        "x64"
+                    ]
+                }
+            ]
+        },
+        "nsis": {
+            "oneClick": false,
+            "perMachine": false,
+            "allowToChangeInstallationDirectory": true,
+            "createDesktopShortcut": "always",
+            "createStartMenuShortcut": true,
+            "shortcutName": "Barcode Reader",
+            "uninstallDisplayName": "Barcode Reader",
+            "installerIcon": "icons/app.ico",
+            "uninstallerIcon": "icons/app.ico",
+            "installerHeaderIcon": "icons/app.ico",
+            "deleteAppDataOnUninstall": false
+        }
+    }
+}

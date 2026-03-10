@@ -1,0 +1,82 @@
+name: Build Desktop (Windows)
+
+on:
+    workflow_dispatch:
+    push:
+        tags:
+            - 'v*'
+
+permissions:
+    contents: write
+
+jobs:
+    build-windows:
+        name: Build Windows installer
+        runs-on: windows-latest
+        defaults:
+            run:
+                working-directory: app
+
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+
+            - name: Setup Python
+              uses: actions/setup-python@v5
+              with:
+                  python-version: '3.12'
+                  cache: 'pip'
+                  cache-dependency-path: app/backend/requirements.txt
+
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: '20'
+                  cache: 'npm'
+                  cache-dependency-path: app/package-lock.json
+
+            - name: Install backend build dependencies
+              run: |
+                  python -m pip install --upgrade pip
+                  pip install -r backend/requirements.txt
+                  pip install pyinstaller
+
+            - name: Install web dependencies
+              run: npm ci
+
+            - name: Install Electron toolchain
+              run: npm install --no-save electron electron-builder
+
+            - name: Build Windows installer (NSIS)
+              run: npm run build:desktop:win
+
+            - name: Pack installer artifacts and checksums
+              shell: pwsh
+              run: |
+                  New-Item -ItemType Directory -Force -Path artifacts | Out-Null
+                  $installers = Get-ChildItem release/*.exe
+                  if (-not $installers) { throw "Windows installer EXE was not produced" }
+                  foreach ($installer in $installers) {
+                    Copy-Item $installer.FullName artifacts/
+                  }
+                  Get-ChildItem artifacts/*.exe | ForEach-Object {
+                    (Get-FileHash $_.FullName -Algorithm SHA256).Hash |
+                      Set-Content -Path "$($_.FullName).sha256" -Encoding ASCII
+                  }
+
+            - name: Upload build artifacts
+              uses: actions/upload-artifact@v4
+              with:
+                  name: barcode-reader-windows-installer
+                  path: |
+                      app/artifacts/*.exe
+                      app/artifacts/*.sha256
+
+            - name: Publish GitHub Release
+              if: startsWith(github.ref, 'refs/tags/v')
+              uses: softprops/action-gh-release@v2
+              with:
+                  files: |
+                      app/artifacts/*.exe
+                      app/artifacts/*.sha256
+                  generate_release_notes: true
