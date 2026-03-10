@@ -53,7 +53,9 @@ async def scanner_status(
     runtime = scanner.current_settings() if scanner else None
     return ScannerStatusDto(
         port=str(runtime["port"]) if runtime else app_config.serial.serial_port,
-        baudrate=int(runtime["baudrate"]) if runtime else app_config.serial.serial_baudrate,
+        baudrate=(
+            int(runtime["baudrate"]) if runtime else app_config.serial.serial_baudrate
+        ),
         running=bool(runtime["running"]) if runtime else False,
         catalog_loaded=meta.get("last_loaded_at") is not None,
         catalog_count=meta.get("count", 0),
