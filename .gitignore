@@ -75,14 +75,7 @@ backend/data/*.sqlite-wal
 backend/data/*.sqlite-shm
 !backend/data/scanner.sqlite
 app/backend/data/sessions/
-app/backend/data/*.sqlite
-app/backend/data/*.sqlite-*
-app/backend/data/*.db
-app/backend/data/*.db-*
-app/backend/data/~$*.xlsx
-app/backend/data/*.sqlite-wal
-app/backend/data/*.sqlite-shm
-!app/backend/data/scanner.sqlite
+app/backend/data/
 
 # =========================
 # Generic build artifacts
