@@ -25,7 +25,7 @@ python -m uvicorn main:app --reload --host localhost --port 8059
 ### 2) Запуск frontend
 
 ```bash
-# из корня проекта
+cd app
 npm install
 npm run dev
 ```
